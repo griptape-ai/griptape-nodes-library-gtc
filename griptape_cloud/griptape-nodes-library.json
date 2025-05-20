@@ -1,0 +1,41 @@
+{
+  "name": "Griptape Cloud",
+  "library_schema_version": "0.1.0",
+  "metadata": {
+    "author": "Griptape",
+    "description": "Collection of nodes for accessing Griptape Cloud APIs and services.",
+    "library_version": "0.1.0",
+    "engine_version": "0.1.0",
+    "tags": ["Griptape", "AI", "Cloud"]
+  },
+  "categories": [
+    {
+      "griptape_cloud/structures": {
+        "color": "border-red-500",
+        "title": "griptape_cloud/structures",
+        "description": "Griptape Cloud Structures",
+        "icon": "Scale"
+      }
+    }
+  ],
+  "nodes": [
+    {
+      "class_name": "GetStructure",
+      "file_path": "structures/get_structure.py",
+      "metadata": {
+        "category": "griptape_cloud/structures",
+        "description": "Griptape Node that retrieves a specific structure.",
+        "display_name": "Get Structure"
+      }
+    },
+    {
+      "class_name": "RunStructure",
+      "file_path": "structures/run_structure.py",
+      "metadata": {
+        "category": "griptape_cloud/structures",
+        "description": "Griptape Node that runs a specific structure.",
+        "display_name": "Run Structure"
+      }
+    }
+  ]
+}
