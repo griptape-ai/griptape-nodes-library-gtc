@@ -74,7 +74,9 @@ class GetStructure(BaseStructureNode, DataNode):
         # if there are exceptions, they will display when the user tries to run the flow with the node.
         return exceptions if exceptions else None
 
-    def after_value_set(self, parameter: Parameter, value: Any, modified_parameters_set: set[str]) -> None:
+    def after_value_set(
+        self, parameter: Parameter, value: Any, modified_parameters_set: set[str] | None = None
+    ) -> None:
         """Callback after a value has been set on this Node."""
         if parameter.name == "structure_id" and value is not None:
             structure = next((s for s in self.structures if s.structure_id == value), None)
@@ -84,8 +86,9 @@ class GetStructure(BaseStructureNode, DataNode):
                 raise ValueError(msg)
             self.set_parameter_value("structure", structure)
             self.set_parameter_value("name", structure.name)
-            modified_parameters_set.add("structure")
-            modified_parameters_set.add("name")
+            if modified_parameters_set is not None:
+                modified_parameters_set.add("structure")
+                modified_parameters_set.add("name")
 
     def process(self) -> None:
         pass
