@@ -17,7 +17,7 @@ dev = ["mdformat>=0.7.22", "pyright>=1.1.396", "ruff>=0.11.0", "typos>=1.30.2", 
 test = ["pytest>=8.3.5"]
 
 [tool.uv.sources]
-griptape-nodes = { git = "https://github.com/griptape-ai/griptape-nodes", rev="latest"}
+griptape-nodes = { git = "https://github.com/griptape-ai/griptape-nodes", rev="zach/pub-wf-events"}
 
 [tool.ruff]
 line-length = 120

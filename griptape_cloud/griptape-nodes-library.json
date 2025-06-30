@@ -24,6 +24,14 @@
         "description": "Griptape Cloud Structures",
         "icon": "Scale"
       }
+    },
+    {
+      "griptape_cloud/publish-workflow": {
+        "color": "border-green-500",
+        "title": "griptape_cloud/publish-workflow",
+        "description": "Griptape Cloud Publish Workflow",
+        "icon": "Scale"
+      }
     }
   ],
   "nodes": [
@@ -61,6 +69,15 @@
         "category": "griptape_cloud/structures",
         "description": "Griptape Node that runs a specific structure.",
         "display_name": "Run Structure"
+      }
+    },
+    {
+      "class_name": "PublishWorkflow",
+      "file_path": "publish_workflow/publish_workflow.py",
+      "metadata": {
+        "category": "griptape_cloud/publish-workflow",
+        "description": "Griptape Node that publishes a workflow to a Griptape Cloud Structure.",
+        "display_name": "Griptape Cloud Publish Workflow"
       }
     }
   ]
