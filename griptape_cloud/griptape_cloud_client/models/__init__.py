@@ -92,6 +92,7 @@ from .create_tool_deployment_request_content import CreateToolDeploymentRequestC
 from .create_tool_deployment_response_content import CreateToolDeploymentResponseContent
 from .create_tool_request_content import CreateToolRequestContent
 from .create_tool_response_content import CreateToolResponseContent
+from .credit_transaction_type import CreditTransactionType
 from .data_connector_config_input_union_type_0 import DataConnectorConfigInputUnionType0
 from .data_connector_config_input_union_type_1 import DataConnectorConfigInputUnionType1
 from .data_connector_config_input_union_type_2 import DataConnectorConfigInputUnionType2
@@ -144,6 +145,8 @@ from .get_asset_response_content import GetAssetResponseContent
 from .get_assistant_response_content import GetAssistantResponseContent
 from .get_assistant_run_response_content import GetAssistantRunResponseContent
 from .get_bucket_response_content import GetBucketResponseContent
+from .get_config_response_content import GetConfigResponseContent
+from .get_credit_balance_response_content import GetCreditBalanceResponseContent
 from .get_data_connector_response_content import GetDataConnectorResponseContent
 from .get_data_job_response_content import GetDataJobResponseContent
 from .get_deployment_response_content import GetDeploymentResponseContent
@@ -460,6 +463,7 @@ __all__ = (
     "CreateToolDeploymentResponseContent",
     "CreateToolRequestContent",
     "CreateToolResponseContent",
+    "CreditTransactionType",
     "DataConnectorConfigInputUnionType0",
     "DataConnectorConfigInputUnionType1",
     "DataConnectorConfigInputUnionType2",
@@ -512,6 +516,8 @@ __all__ = (
     "GetAssistantResponseContent",
     "GetAssistantRunResponseContent",
     "GetBucketResponseContent",
+    "GetConfigResponseContent",
+    "GetCreditBalanceResponseContent",
     "GetDataConnectorResponseContent",
     "GetDataJobResponseContent",
     "GetDeploymentResponseContent",
