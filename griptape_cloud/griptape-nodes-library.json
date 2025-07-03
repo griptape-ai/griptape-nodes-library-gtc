@@ -1,26 +1,35 @@
 {
-  "name": "Griptape Cloud",
-  "library_schema_version": "0.1.0",
+  "name": "Griptape Cloud Library",
+  "library_schema_version": "0.2.0",
+  "advanced_library_path": "griptape_cloud_library_advanced.py",
   "metadata": {
     "author": "Griptape",
     "description": "Collection of nodes for accessing Griptape Cloud APIs and services.",
-    "library_version": "0.39.0",
-    "engine_version": "0.39.0",
+    "library_version": "0.41.0",
+    "engine_version": "0.41.0",
     "tags": ["Griptape", "AI", "Cloud"]
   },
   "categories": [
     {
       "griptape_cloud/assistants": {
         "color": "border-blue-500",
-        "title": "griptape_cloud/assistants",
+        "title": "GTC Assistants",
         "description": "Griptape Cloud Assistants",
+        "icon": "Scale"
+      }
+    },
+    {
+      "griptape_cloud/published_workflows": {
+        "color": "border-green-500",
+        "title": "GTC Published Workflows",
+        "description": "Griptape Cloud Published Workflows",
         "icon": "Scale"
       }
     },
     {
       "griptape_cloud/structures": {
         "color": "border-red-500",
-        "title": "griptape_cloud/structures",
+        "title": "GTC Structures",
         "description": "Griptape Cloud Structures",
         "icon": "Scale"
       }
@@ -43,6 +52,15 @@
         "category": "griptape_cloud/assistants",
         "description": "Griptape Node that runs a specific assistant.",
         "display_name": "Run Assistant"
+      }
+    },
+    {
+      "class_name": "GriptapeCloudPublishedWorkflow",
+      "file_path": "publish_workflow/griptape_cloud_published_workflow.py",
+      "metadata": {
+        "category": "griptape_cloud/published_workflows",
+        "description": "Griptape Node that runs a specific published workflow.",
+        "display_name": "Griptape Cloud Published Workflow"
       }
     },
     {

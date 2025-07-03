@@ -6,6 +6,8 @@ class Entitlement(str, Enum):
     FREE = "FREE"
     PAID = "PAID"
     PARTNER = "PARTNER"
+    PROFESSIONAL = "PROFESSIONAL"
+    STUDIO = "STUDIO"
     UNPAID = "UNPAID"
 
     def __str__(self) -> str:

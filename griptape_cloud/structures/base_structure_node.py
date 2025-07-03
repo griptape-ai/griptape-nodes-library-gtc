@@ -4,6 +4,7 @@ from collections.abc import Generator
 
 from base.base_griptape_cloud_node import BaseGriptapeCloudNode
 from griptape_cloud_client.api.deployments.get_deployment import sync as get_deployment
+from griptape_cloud_client.api.deployments.list_structure_deployments import sync as list_structure_deployments
 from griptape_cloud_client.api.events.list_events import sync as list_events
 from griptape_cloud_client.api.structure_runs.create_structure_run import sync as create_structure_run
 from griptape_cloud_client.api.structure_runs.get_structure_run import sync as get_structure_run
@@ -21,8 +22,12 @@ from griptape_cloud_client.models.get_structure_run_response_content import (
     GetStructureRunResponseContent,
 )
 from griptape_cloud_client.models.list_events_response_content import ListEventsResponseContent
+from griptape_cloud_client.models.list_structure_deployments_response_content import (
+    ListStructureDeploymentsResponseContent,
+)
 from griptape_cloud_client.models.list_structures_response_content import ListStructuresResponseContent
 from griptape_cloud_client.models.structure_detail import StructureDetail
+from griptape_cloud_client.types import UNSET
 from griptape_nodes.exe_types.node_types import DataNode
 
 logger = logging.getLogger(__name__)
@@ -57,6 +62,21 @@ class BaseStructureNode(BaseGriptapeCloudNode, DataNode):
                 client=self.client,
             )
             if isinstance(response, GetDeploymentResponseContent):
+                return response
+            msg = f"Unexpected response type: {type(response)}"
+            logger.error(msg)
+            raise TypeError(msg)  # noqa: TRY301
+        except Exception as e:
+            logger.error("Error getting deployment: %s", e)
+            raise
+
+    def _list_structure_deployments(
+        self, structure_id: str, status: list[DeploymentStatus] | None = None
+    ) -> ListStructureDeploymentsResponseContent:
+        try:
+            status_query = status or UNSET
+            response = list_structure_deployments(structure_id=structure_id, client=self.client, status=status_query)
+            if isinstance(response, ListStructureDeploymentsResponseContent):
                 return response
             msg = f"Unexpected response type: {type(response)}"
             logger.error(msg)

@@ -11,34 +11,42 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def _strip_oneof_titles(spec: dict) -> None:
-    """Remove 'title' fields from any 'oneOf' schema objects in the given dict."""
-    if "oneOf" in spec and isinstance(spec["oneOf"], list):
-        for item in spec["oneOf"]:
-            if isinstance(item, dict) and "title" in item:
-                del item["title"]
-
-
-def _clone_create_asset_response(spec: dict) -> None:
-    """If this is the CreateAsset operation, clone its 201 response to 200."""
-    if spec.get("operationId") == "CreateAsset":
-        responses = spec.get("responses", {})
-        if "201" in responses and "200" not in responses:
-            responses["200"] = copy.deepcopy(responses["201"])
-            desc = responses["200"].get("description")
-            if isinstance(desc, str):
-                responses["200"]["description"] = desc.replace("201 response", "200 response")
-
-
 def recurse_openapi_spec_for_edits(spec: dict | list) -> None:
-    """Recursively edit the OpenAPI spec in-place.
-
-    - Remove 'title' fields from 'oneOf' schema objects.
-    - For CreateAsset operation, clone 201 response to 200.
-    """
     if isinstance(spec, dict):
-        _strip_oneof_titles(spec)
-        _clone_create_asset_response(spec)
+        # 0) convert 400/500 response ranges to 4XX/5XX
+        responses = spec.get("responses")
+        if isinstance(responses, dict):
+            if "400" in responses and "401" not in responses:
+                responses["401"] = responses.get("400")
+            if "400" in responses and "403" not in responses:
+                responses["403"] = responses.get("400")
+            if "400" in responses and "404" not in responses:
+                responses["404"] = responses.get("400")
+            if "400" in responses and "406" not in responses:
+                responses["406"] = responses.get("400")
+            if "400" in responses and "409" not in responses:
+                responses["409"] = responses.get("400")
+            if "400" in responses and "422" not in responses:
+                responses["422"] = responses.get("400")
+
+        # 1) strip out any titles on oneOf items
+        if "oneOf" in spec and isinstance(spec["oneOf"], list):
+            for item in spec["oneOf"]:
+                if isinstance(item, dict) and "title" in item:
+                    del item["title"]
+
+        # 2) if this is the CreateAsset operation, clone its 201 → 200
+        if spec.get("operationId") == "CreateAsset":
+            responses = spec.get("responses", {})
+            if "201" in responses and "200" not in responses:
+                # deep-copy the 201 response into 200
+                responses["200"] = copy.deepcopy(responses["201"])
+                # tweak the description if present
+                desc = responses["200"].get("description")
+                if isinstance(desc, str):
+                    responses["200"]["description"] = desc.replace("201 response", "200 response")
+
+        # 3) recurse into all values
         for v in spec.values():
             recurse_openapi_spec_for_edits(v)
     elif isinstance(spec, list):

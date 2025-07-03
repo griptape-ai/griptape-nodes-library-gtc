@@ -13,43 +13,41 @@ T = TypeVar("T", bound="ServiceErrorResponseContent")
 class ServiceErrorResponseContent:
     """
     Attributes:
-        type_ (str):
         errors (Union[Unset, list[Any]]):
+        type_ (Union[Unset, str]):
     """
 
-    type_: str
     errors: Union[Unset, list[Any]] = UNSET
+    type_: Union[Unset, str] = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        type_ = self.type_
-
         errors: Union[Unset, list[Any]] = UNSET
         if not isinstance(self.errors, Unset):
             errors = self.errors
 
+        type_ = self.type_
+
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
-        field_dict.update(
-            {
-                "type": type_,
-            }
-        )
+        field_dict.update({})
         if errors is not UNSET:
             field_dict["errors"] = errors
+        if type_ is not UNSET:
+            field_dict["type"] = type_
 
         return field_dict
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         d = dict(src_dict)
-        type_ = d.pop("type")
-
         errors = cast(list[Any], d.pop("errors", UNSET))
 
+        type_ = d.pop("type", UNSET)
+
         service_error_response_content = cls(
-            type_=type_,
             errors=errors,
+            type_=type_,
         )
 
         service_error_response_content.additional_properties = d

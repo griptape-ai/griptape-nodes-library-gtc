@@ -1,10 +1,12 @@
 import datetime
 from collections.abc import Mapping
-from typing import Any, TypeVar, cast
+from typing import Any, TypeVar, Union, cast
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 from dateutil.parser import isoparse
+
+from ..types import UNSET, Unset
 
 T = TypeVar("T", bound="UserDetail")
 
@@ -18,6 +20,7 @@ class UserDetail:
         organizations (list[str]):
         updated_at (datetime.datetime):
         user_id (str):
+        name (Union[Unset, str]):
     """
 
     created_at: datetime.datetime
@@ -25,6 +28,7 @@ class UserDetail:
     organizations: list[str]
     updated_at: datetime.datetime
     user_id: str
+    name: Union[Unset, str] = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -38,6 +42,8 @@ class UserDetail:
 
         user_id = self.user_id
 
+        name = self.name
+
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update(
@@ -49,6 +55,8 @@ class UserDetail:
                 "user_id": user_id,
             }
         )
+        if name is not UNSET:
+            field_dict["name"] = name
 
         return field_dict
 
@@ -65,12 +73,15 @@ class UserDetail:
 
         user_id = d.pop("user_id")
 
+        name = d.pop("name", UNSET)
+
         user_detail = cls(
             created_at=created_at,
             email=email,
             organizations=organizations,
             updated_at=updated_at,
             user_id=user_id,
+            name=name,
         )
 
         user_detail.additional_properties = d
