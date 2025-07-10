@@ -19,6 +19,22 @@
       }
     },
     {
+      "griptape_cloud/assets": {
+        "color": "border-gray-500",
+        "title": "GTC Assets",
+        "description": "Griptape Cloud Assets",
+        "icon": "Scale"
+      }
+    },
+    {
+      "griptape_cloud/buckets": {
+        "color": "border-yellow-500",
+        "title": "GTC Buckets",
+        "description": "Griptape Cloud Buckets",
+        "icon": "Scale"
+      }
+    },
+    {
       "griptape_cloud/published_workflows": {
         "color": "border-green-500",
         "title": "GTC Published Workflows",
@@ -52,6 +68,33 @@
         "category": "griptape_cloud/assistants",
         "description": "Griptape Node that runs a specific assistant.",
         "display_name": "Run Assistant"
+      }
+    },
+    {
+      "class_name": "CreateAssetUrl",
+      "file_path": "assets/create_asset_url.py",
+      "metadata": {
+        "category": "griptape_cloud/assets",
+        "description": "Griptape Node that creates a URL for uploading or downloading an asset.",
+        "display_name": "Create Asset URL"
+      }
+    },
+    {
+      "class_name": "UploadAsset",
+      "file_path": "assets/upload_asset.py",
+      "metadata": {
+        "category": "griptape_cloud/assets",
+        "description": "Griptape Node that uploads an asset to a specific bucket.",
+        "display_name": "Upload Asset"
+      }
+    },
+    {
+      "class_name": "GetBucket",
+      "file_path": "buckets/get_bucket.py",
+      "metadata": {
+        "category": "griptape_cloud/buckets",
+        "description": "Griptape Node that retrieves a specific bucket.",
+        "display_name": "Get Bucket"
       }
     },
     {
