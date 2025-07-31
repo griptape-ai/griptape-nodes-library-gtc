@@ -241,7 +241,9 @@ class GriptapeCloudPublisher:
                     abs_paths.append(p)
                 common_root = Path(os.path.commonpath([str(p) for p in abs_paths]))
                 dest = destination_path / common_root.name
-                shutil.copytree(common_root, dest, dirs_exist_ok=True, ignore=shutil.ignore_patterns(".venv", "__pycache__"))
+                shutil.copytree(
+                    common_root, dest, dirs_exist_ok=True, ignore=shutil.ignore_patterns(".venv", "__pycache__")
+                )
                 library_path_relative_to_common_root = absolute_library_path.relative_to(common_root)
                 library_paths.append(str(runtime_env_path / common_root.name / library_path_relative_to_common_root))
             else:

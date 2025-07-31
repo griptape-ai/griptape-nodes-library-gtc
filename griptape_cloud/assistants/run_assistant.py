@@ -115,5 +115,4 @@ class RunAssistant(BaseAssistantNode, ControlNode):
     def process(
         self,
     ) -> AsyncResult[None]:
-        yield lambda: None
-        self._process()
+        yield lambda: self._process()
