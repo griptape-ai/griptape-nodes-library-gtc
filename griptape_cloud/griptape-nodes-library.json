@@ -2,6 +2,15 @@
   "name": "Griptape Cloud Library",
   "library_schema_version": "0.2.0",
   "advanced_library_path": "griptape_cloud_library_advanced.py",
+  "settings": [
+    {
+      "description": "Configuration settings for Griptape Cloud",
+      "category": "griptape_cloud_library",
+      "contents": {
+        "GT_CLOUD_PUBLISH_BUCKET_ID": ""
+      }
+    }
+  ],
   "metadata": {
     "author": "Griptape",
     "description": "Collection of nodes for accessing Griptape Cloud APIs and services.",

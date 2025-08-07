@@ -51,6 +51,7 @@ from griptape_nodes.retained_mode.griptape_nodes import (
     GriptapeNodes,
 )
 from httpx import Client
+from publish_workflow import GRIPTAPE_CLOUD_LIBRARY_CONFIG_KEY
 from publish_workflow.workflow_builder import WorkflowBuilder
 
 if TYPE_CHECKING:
@@ -75,7 +76,9 @@ class GriptapeCloudPublisher:
             token=self._get_secret("GT_CLOUD_API_KEY"),
             verify_ssl=False,
         )
-        self._gt_cloud_bucket_id = self._get_secret("GT_CLOUD_BUCKET_ID")
+        self._gt_cloud_bucket_id = self._get_config_value(
+            GRIPTAPE_CLOUD_LIBRARY_CONFIG_KEY, "GT_CLOUD_PUBLISH_BUCKET_ID"
+        )
 
     def publish_workflow(self) -> ResultPayload:
         try:
@@ -115,7 +118,7 @@ class GriptapeCloudPublisher:
     @classmethod
     def _get_config_value(cls, service: str, value: str) -> str:
         """Retrieves a configuration value from the ConfigManager."""
-        config_value = GriptapeNodes.ConfigManager().get_config_value(f"nodes.{service}.{value}")
+        config_value = GriptapeNodes.ConfigManager().get_config_value(f"{service}.{value}")
         if not config_value:
             details = f"Failed to get configuration value '{value}' for service '{service}'."
             logger.error(details)
