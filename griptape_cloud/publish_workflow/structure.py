@@ -4,8 +4,6 @@ import logging
 from pathlib import Path
 
 from dotenv import load_dotenv
-from structure_workflow_executor import StructureWorkflowExecutor
-from workflow import execute_workflow  # type: ignore[attr-defined]
 
 LIBRARIES = ["REPLACE_LIBRARIES"]
 
@@ -15,8 +13,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
-
-load_dotenv()
 
 
 def _set_libraries(libraries: list[str]) -> None:
@@ -48,7 +44,11 @@ if __name__ == "__main__":
         logger.info(msg)
         raise
 
+    load_dotenv()
     _set_libraries(LIBRARIES)
+
+    from structure_workflow_executor import StructureWorkflowExecutor
+    from workflow import execute_workflow  # type: ignore[attr-defined]
 
     workflow_file_path = Path(__file__).parent / "workflow.py"
     workflow_runner = StructureWorkflowExecutor()
