@@ -111,10 +111,6 @@ class RunStructure(BaseStructureNode, ControlNode):
 
         structure_run = self._get_structure_run(structure_run_id=structure_run.structure_run_id)
         output = structure_run.output if not isinstance(structure_run.output, Unset) else None
-
-        logger.info(f"output type: {type(output)}")
-        logger.info(f"output: {output}")
-
         self.parameter_output_values["output"] = output
 
     def process(

@@ -23,10 +23,11 @@ griptape-nodes = { git = "https://github.com/griptape-ai/griptape-nodes", rev="m
 line-length = 120
 
 [tool.ruff.format]
-exclude = [".venv"]
+exclude = [".venv", "griptape_cloud/griptape_cloud_client/**/*"]
 
 [tool.ruff.lint]
 select = ["ALL"]
+exclude = ["griptape_cloud/griptape_cloud_client/**/*"]
 ignore = [
   "TD002",   # Intentional
   "FIX002",  # Intentional
@@ -52,6 +53,9 @@ ignore = [
   "PLC0415", # Intentional
 ]
 
+[tool.ruff.lint.flake8-annotations]
+mypy-init-return = true
+
 [tool.ruff.lint.pydocstyle]
 convention = "google"
 
@@ -59,9 +63,17 @@ convention = "google"
 venvPath = "."
 venv = ".venv"
 include = ["."]
-pythonVersion = "3.13"
-reportArgumentType = false
-reportAttributeAccessIssue = false
+exclude = [
+  "griptape_cloud/griptape_cloud_client/**/*",
+  "griptape_cloud/generated/**/*",
+  ".venv",
+  "GriptapeNodes",
+  "**/node_modules",
+  "**/__pycache__",
+  "**/.*",
+]
+pythonVersion = "3.12"
+reportIncompatibleMethodOverride = false
 
 [build-system]
 requires = ["hatchling"]

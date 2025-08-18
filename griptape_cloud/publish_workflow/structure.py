@@ -16,7 +16,7 @@ logger.setLevel(logging.INFO)
 
 
 def _set_libraries(libraries: list[str]) -> None:
-    from griptape_nodes.retained_mode.managers.config_manager import ConfigManager  # noqa: PLC0415
+    from griptape_nodes.retained_mode.managers.config_manager import ConfigManager
 
     config_manager = ConfigManager()
     config_manager.set_config_value(

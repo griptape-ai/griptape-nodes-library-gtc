@@ -39,6 +39,10 @@ from griptape_nodes.retained_mode.events.app_events import (
     GetEngineVersionRequest,
     GetEngineVersionResultSuccess,
 )
+from griptape_nodes.retained_mode.events.parameter_events import (
+    GetParameterValueRequest,
+    GetParameterValueResultSuccess,
+)
 from griptape_nodes.retained_mode.events.secrets_events import (
     GetAllSecretValuesRequest,
     GetAllSecretValuesResultSuccess,
@@ -51,7 +55,9 @@ from griptape_nodes.retained_mode.griptape_nodes import (
     GriptapeNodes,
 )
 from httpx import Client
+from mixins.griptape_cloud_api_mixin import GriptapeCloudApiMixin
 from publish_workflow import GRIPTAPE_CLOUD_LIBRARY_CONFIG_KEY
+from publish_workflow.griptape_cloud_subprocess_executor import GriptapeCloudSubprocessExecutor
 from publish_workflow.workflow_builder import WorkflowBuilder
 
 if TYPE_CHECKING:
@@ -67,9 +73,13 @@ logger = logging.getLogger("griptape_cloud_publisher")
 GRIPTAPE_SERVICE = "Griptape"
 
 
-class GriptapeCloudPublisher:
-    def __init__(self, workflow_name: str) -> None:
+class GriptapeCloudPublisher(GriptapeCloudApiMixin):
+    def __init__(
+        self, workflow_name: str, *, execute_on_publish: bool = False, published_workflow_file_name: str | None = None
+    ) -> None:
         self._workflow_name = workflow_name
+        self._published_workflow_file_name = published_workflow_file_name
+        self.execute_on_publish = execute_on_publish
         self._client = Client()
         self._gtc_client = AuthenticatedClient(
             base_url=self._get_base_url(),
@@ -79,12 +89,16 @@ class GriptapeCloudPublisher:
         self._gt_cloud_bucket_id = self._get_config_value(
             GRIPTAPE_CLOUD_LIBRARY_CONFIG_KEY, "GT_CLOUD_PUBLISH_BUCKET_ID"
         )
+        self._subprocess_executor = GriptapeCloudSubprocessExecutor()
 
     def publish_workflow(self) -> ResultPayload:
         try:
             # Get the workflow shape
             workflow_shape = GriptapeNodes.WorkflowManager().extract_workflow_shape(self._workflow_name)
             logger.info("Workflow shape: %s", workflow_shape)
+
+            if self.execute_on_publish:
+                self._create_run_input = self._gather_griptape_cloud_start_flow_input(workflow_shape)
 
             # Package the workflow
             package_path = self._package_workflow(self._workflow_name)
@@ -98,6 +112,10 @@ class GriptapeCloudPublisher:
 
             # Generate an executor workflow that can invoke the published structure
             executor_workflow_path = self._generate_executor_workflow(structure.structure_id, workflow_shape)
+
+            if self.execute_on_publish:
+                self._wait_for_latest_structure_deployment(structure_id=structure.structure_id)
+                self._invoke_executor_workflow(executor_workflow_path, self._create_run_input)
 
             return PublishWorkflowResultSuccess(
                 published_workflow_file_path=str(executor_workflow_path),
@@ -135,6 +153,29 @@ class GriptapeCloudPublisher:
             raise ValueError(details)
         return secret_value
 
+    def _gather_griptape_cloud_start_flow_input(self, workflow_shape: dict[str, Any]) -> dict[str, Any]:
+        """Extracts the Griptape Cloud Start Flow input parameters from the workflow."""
+        workflow_input: dict[str, Any] = {"Start Flow": {}}
+
+        node_manager = GriptapeNodes.NodeManager()
+
+        # Gather input parameters from the workflow shape
+        for node_name, params in workflow_shape.get("input", {}).items():
+            for param_name in params:
+                request = GetParameterValueRequest(
+                    node_name=node_name,
+                    parameter_name=param_name,
+                )
+                result = node_manager.on_get_parameter_value_request(request=request)
+                if isinstance(result, GetParameterValueResultSuccess):
+                    workflow_input["Start Flow"][param_name] = result.value
+
+        return workflow_input
+
+    def _invoke_executor_workflow(self, executor_workflow_path: Path, workflow_input: dict[str, Any] | None) -> None:
+        # Execute the script in a background thread without waiting for completion
+        self._subprocess_executor.execute_workflow(executor_workflow_path, workflow_input)
+
     def _upload_file_to_data_lake(self, name: str, value: bytes) -> None:
         create_asset_response = create_asset(
             client=self._gtc_client,
@@ -164,11 +205,12 @@ class GriptapeCloudPublisher:
             response = self._client.put(
                 url=url,
                 headers=headers.to_dict(),
-                data=value,
+                content=value,
             )
             response.raise_for_status()
-        except Exception as e:
-            logger.exception(f"Failed to upload file to data lake: {e}")
+        except Exception:
+            msg = "Failed to upload file to data lake"
+            logger.exception(msg)
             raise
 
     def _deploy_workflow_to_cloud(self, package_path: str) -> UpdateStructureResponseContent:
@@ -474,9 +516,11 @@ class GriptapeCloudPublisher:
             logger.error(details)
             raise ValueError(details)
         library_paths = [library.library_path for library in libraries if library.library_path is not None]
+        if self._published_workflow_file_name is None:
+            self._published_workflow_file_name = f"{self._workflow_name}_gtc_executor_{structure_id}"
         builder = WorkflowBuilder(
             workflow_name=self._workflow_name,
-            executor_workflow_name=f"{self._workflow_name}_gtc_executor_{structure_id}",
+            executor_workflow_name=self._published_workflow_file_name,
             libraries=library_paths,
         )
         return builder.generate_executor_workflow(structure_id, workflow_shape)
