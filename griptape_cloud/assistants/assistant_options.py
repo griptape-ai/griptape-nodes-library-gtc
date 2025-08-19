@@ -21,7 +21,11 @@ class AssistantOptions(Options):
                 msg = f"Selection '{value}' is not in choices. Defaulting to first choice: '{self.choices[0]}'."
                 logger.warning(msg)
                 value = self.choices[0]
-            value = self.choices_value_lookup.get(value, self.choices[0]).assistant_id
+            assistant_detail = self.choices_value_lookup.get(value)
+            if assistant_detail is None:
+                # This shouldn't happen if choices are properly set up, but provide a fallback
+                assistant_detail = next(iter(self.choices_value_lookup.values()))
+            value = assistant_detail.assistant_id
             msg = f"Converted choice into value: {value}"
             logger.warning(msg)
             return value

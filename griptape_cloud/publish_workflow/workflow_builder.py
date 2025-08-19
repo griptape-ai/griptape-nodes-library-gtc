@@ -73,28 +73,23 @@ class WorkflowBuilder:
         for i, lib in enumerate(libraries):
             if lib.endswith(".json"):
                 script += f"""
-    request_{str(i)} = GriptapeNodes.handle_request(RegisterLibraryFromFileRequest(file_path="{lib}"))
+    request_{i!s} = GriptapeNodes.handle_request(RegisterLibraryFromFileRequest(file_path="{lib}"))
 """
             else:
                 script += f"""
-    request_{str(i)} = GriptapeNodes.handle_request(RegisterLibraryFromRequirementSpecifierRequest(requirement_specifier="{lib}"))
+    request_{i!s} = GriptapeNodes.handle_request(RegisterLibraryFromRequirementSpecifierRequest(requirement_specifier="{lib}"))
 """
         return script
 
-    def _build_simple_workflow_script(
-        self, structure_id: str, workflow_shape: dict[str, Any], libraries: list[str]
-    ) -> str:
-        """Build a simple workflow creation script using PublishedWorkflow node.
+    def _extract_parameters_from_shape(self, workflow_shape: dict[str, Any]) -> tuple[list[dict], list[dict]]:
+        """Extract input and output parameters from workflow shape.
 
         Args:
-            structure_id: The Griptape Cloud structure ID
-            workflow_shape: Input/output parameter structure
-            libraries: List of libraries needed for the workflow
+            workflow_shape: The workflow shape containing input/output parameter structure
 
         Returns:
-            Complete Python script as string
+            Tuple of (input_params, output_params)
         """
-        # Get parameter information directly from workflow_shape
         input_params = []
         if "input" in workflow_shape:
             for node_params in workflow_shape["input"].values():
@@ -107,8 +102,19 @@ class WorkflowBuilder:
                 if isinstance(node_params, dict):
                     output_params.extend(node_params.values())
 
-        # Build the workflow generation script
-        script = f'''
+        return input_params, output_params
+
+    def _build_script_header(self, structure_id: str, libraries: list[str]) -> str:
+        """Build the header section of the workflow script.
+
+        Args:
+            structure_id: The Griptape Cloud structure ID
+            libraries: List of libraries needed for the workflow
+
+        Returns:
+            Script header as string
+        """
+        return f'''
 """
 Generated executor workflow for invoking published Griptape Cloud structure.
 This workflow was automatically created to execute structure: {structure_id}
@@ -136,7 +142,19 @@ def main():
     flow_response = GriptapeNodes.handle_request(CreateFlowRequest(parent_flow_name=None))
     flow_name = flow_response.flow_name
 
-    with GriptapeNodes.ContextManager().flow(flow_name):
+    with GriptapeNodes.ContextManager().flow(flow_name):'''
+
+    def _build_node_creation_script(self, structure_id: str, workflow_shape: dict[str, Any]) -> str:
+        """Build the node creation section of the workflow script.
+
+        Args:
+            structure_id: The Griptape Cloud structure ID
+            workflow_shape: Input/output parameter structure
+
+        Returns:
+            Node creation script as string
+        """
+        return f"""
         # Create StartNode
         start_node_response = GriptapeNodes.handle_request(CreateNodeRequest(
             node_type="StartFlow",
@@ -167,14 +185,25 @@ def main():
             node_name="End Flow",
             initial_setup=True
         ))
-        end_node_name = end_node_response.node_name
+        end_node_name = end_node_response.node_name"""
+
+    def _build_parameter_configuration_script(self, input_params: list[dict], output_params: list[dict]) -> str:
+        """Build the parameter configuration section of the workflow script.
+
+        Args:
+            input_params: List of input parameter configurations
+            output_params: List of output parameter configurations
+
+        Returns:
+            Parameter configuration script as string
+        """
+        script = """
 
         # Configure StartNode parameters
-        with GriptapeNodes.ContextManager().node(start_node_name):'''
+        with GriptapeNodes.ContextManager().node(start_node_name):"""
 
         # Add parameter configuration for StartNode
         for param in input_params:
-            # Create a copy and remap 'name' to 'parameter_name'
             param_config = dict(param)
             param_config["parameter_name"] = param_config.pop("name")
             script += f"""
@@ -193,7 +222,6 @@ def main():
 
         # Add input parameter configuration for GriptapeCloudPublishedWorkflow
         for param in input_params:
-            # Create a copy and remap 'name' to 'parameter_name'
             param_config = dict(param)
             param_config["parameter_name"] = param_config.pop("name")
             script += f"""
@@ -207,7 +235,6 @@ def main():
 
         # Add output parameter configuration for GriptapeCloudPublishedWorkflow
         for param in output_params:
-            # Create a copy and remap 'name' to 'parameter_name'
             param_config = dict(param)
             param_config["parameter_name"] = param_config.pop("name")
             script += f"""
@@ -226,7 +253,6 @@ def main():
 
         # Add parameter configuration for EndNode
         for param in output_params:
-            # Create a copy and remap 'name' to 'parameter_name'
             param_config = dict(param)
             param_config["parameter_name"] = param_config.pop("name")
             script += f"""
@@ -238,7 +264,19 @@ def main():
                 initial_setup=True
             ))"""
 
-        script += """
+        return script
+
+    def _build_connection_creation_script(self, input_params: list[dict], output_params: list[dict]) -> str:
+        """Build the connection creation section of the workflow script.
+
+        Args:
+            input_params: List of input parameter configurations
+            output_params: List of output parameter configurations
+
+        Returns:
+            Connection creation script as string
+        """
+        script = """
 
     # Create connections between StartNode and GriptapeCloudPublishedWorkflow"""
 
@@ -268,7 +306,15 @@ def main():
         initial_setup=True
     ))"""
 
-        script += f"""
+        return script
+
+    def _build_script_footer(self) -> str:
+        """Build the footer section of the workflow script.
+
+        Returns:
+            Script footer as string
+        """
+        return f"""
 
     # Save the workflow
     save_response = GriptapeNodes.handle_request(SaveWorkflowRequest(
@@ -284,7 +330,30 @@ if __name__ == "__main__":
     main()
 """
 
-        return script
+    def _build_simple_workflow_script(
+        self, structure_id: str, workflow_shape: dict[str, Any], libraries: list[str]
+    ) -> str:
+        """Build a simple workflow creation script using PublishedWorkflow node.
+
+        Args:
+            structure_id: The Griptape Cloud structure ID
+            workflow_shape: Input/output parameter structure
+            libraries: List of libraries needed for the workflow
+
+        Returns:
+            Complete Python script as string
+        """
+        # Extract parameters from workflow shape
+        input_params, output_params = self._extract_parameters_from_shape(workflow_shape)
+
+        # Build script sections
+        header = self._build_script_header(structure_id, libraries)
+        nodes = self._build_node_creation_script(structure_id, workflow_shape)
+        params = self._build_parameter_configuration_script(input_params, output_params)
+        connections = self._build_connection_creation_script(input_params, output_params)
+        footer = self._build_script_footer()
+
+        return header + nodes + params + connections + footer
 
     def _execute_workflow_script(self, script: str) -> None:
         """Execute the workflow creation script in a subprocess."""

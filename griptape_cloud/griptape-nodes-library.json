@@ -14,17 +14,25 @@
   "metadata": {
     "author": "Griptape",
     "description": "Collection of nodes for accessing Griptape Cloud APIs and services.",
-    "library_version": "0.41.0",
-    "engine_version": "0.41.0",
+    "library_version": "0.49.0",
+    "engine_version": "0.49.0",
     "tags": ["Griptape", "AI", "Cloud"]
   },
   "categories": [
+    {
+      "griptape_cloud": {
+        "color": "border-gray-500",
+        "title": "Griptape Cloud",
+        "description": "Griptape Cloud",
+        "icon": "cloud"
+      }
+    },
     {
       "griptape_cloud/assistants": {
         "color": "border-blue-500",
         "title": "GTC Assistants",
         "description": "Griptape Cloud Assistants",
-        "icon": "Scale"
+        "icon": "bot"
       }
     },
     {
@@ -32,7 +40,7 @@
         "color": "border-gray-500",
         "title": "GTC Assets",
         "description": "Griptape Cloud Assets",
-        "icon": "Scale"
+        "icon": "file-text"
       }
     },
     {
@@ -40,7 +48,7 @@
         "color": "border-yellow-500",
         "title": "GTC Buckets",
         "description": "Griptape Cloud Buckets",
-        "icon": "Scale"
+        "icon": "paint-bucket"
       }
     },
     {
@@ -48,7 +56,7 @@
         "color": "border-green-500",
         "title": "GTC Published Workflows",
         "description": "Griptape Cloud Published Workflows",
-        "icon": "Scale"
+        "icon": "cloud-check"
       }
     },
     {
@@ -56,7 +64,7 @@
         "color": "border-red-500",
         "title": "GTC Structures",
         "description": "Griptape Cloud Structures",
-        "icon": "Scale"
+        "icon": "layout-panel-top"
       }
     }
   ],

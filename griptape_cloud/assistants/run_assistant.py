@@ -106,10 +106,6 @@ class RunAssistant(BaseAssistantNode, ControlNode):
 
         assistant_run = self._get_assistant_run(assistant_run_id=assistant_run.assistant_run_id)
         output = assistant_run.output if not isinstance(assistant_run.output, Unset) else None
-
-        logger.info(f"output type: {type(output)}")
-        logger.info(f"output: {output}")
-
         self.parameter_output_values["output"] = output
 
     def process(

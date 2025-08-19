@@ -11,42 +11,53 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
+def _add_missing_response_codes(responses: dict) -> None:
+    """Add missing response codes based on 400 response."""
+    if "400" not in responses:
+        return
+    missing_codes = ["401", "403", "404", "406", "409", "422"]
+    for code in missing_codes:
+        if code not in responses:
+            responses[code] = responses.get("400")
+
+
+def _strip_oneof_titles(spec: dict) -> None:
+    """Strip out any titles on oneOf items."""
+    if "oneOf" in spec and isinstance(spec["oneOf"], list):
+        for item in spec["oneOf"]:
+            if isinstance(item, dict) and "title" in item:
+                del item["title"]
+
+
+def _handle_create_asset_operation(spec: dict) -> None:
+    """Handle CreateAsset operation by cloning 201 response to 200."""
+    if spec.get("operationId") != "CreateAsset":
+        return
+    responses = spec.get("responses", {})
+    if "201" in responses and "200" not in responses:
+        # deep-copy the 201 response into 200
+        responses["200"] = copy.deepcopy(responses["201"])
+        # tweak the description if present
+        desc = responses["200"].get("description")
+        if isinstance(desc, str):
+            responses["200"]["description"] = desc.replace("201 response", "200 response")
+
+
 def recurse_openapi_spec_for_edits(spec: dict | list) -> None:
+    """Recursively edit OpenAPI specification to fix common issues."""
     if isinstance(spec, dict):
-        # 0) convert 400/500 response ranges to 4XX/5XX
+        # Handle response codes
         responses = spec.get("responses")
         if isinstance(responses, dict):
-            if "400" in responses and "401" not in responses:
-                responses["401"] = responses.get("400")
-            if "400" in responses and "403" not in responses:
-                responses["403"] = responses.get("400")
-            if "400" in responses and "404" not in responses:
-                responses["404"] = responses.get("400")
-            if "400" in responses and "406" not in responses:
-                responses["406"] = responses.get("400")
-            if "400" in responses and "409" not in responses:
-                responses["409"] = responses.get("400")
-            if "400" in responses and "422" not in responses:
-                responses["422"] = responses.get("400")
+            _add_missing_response_codes(responses)
 
-        # 1) strip out any titles on oneOf items
-        if "oneOf" in spec and isinstance(spec["oneOf"], list):
-            for item in spec["oneOf"]:
-                if isinstance(item, dict) and "title" in item:
-                    del item["title"]
+        # Strip oneOf titles
+        _strip_oneof_titles(spec)
 
-        # 2) if this is the CreateAsset operation, clone its 201 → 200
-        if spec.get("operationId") == "CreateAsset":
-            responses = spec.get("responses", {})
-            if "201" in responses and "200" not in responses:
-                # deep-copy the 201 response into 200
-                responses["200"] = copy.deepcopy(responses["201"])
-                # tweak the description if present
-                desc = responses["200"].get("description")
-                if isinstance(desc, str):
-                    responses["200"]["description"] = desc.replace("201 response", "200 response")
+        # Handle CreateAsset operation
+        _handle_create_asset_operation(spec)
 
-        # 3) recurse into all values
+        # Recurse into all values
         for v in spec.values():
             recurse_openapi_spec_for_edits(v)
     elif isinstance(spec, list):
@@ -96,7 +107,7 @@ def _download_openapi_spec(url: str, output_path: Path) -> None:
         sys.exit(1)
 
 
-def main():
+def main() -> None:
     """Main entry point for downloading, cleaning, and generating the SDK from the OpenAPI spec."""
     griptape_cloud_dir = Path(__file__).parent.parent / "griptape_cloud"
     output_dir = griptape_cloud_dir / "generated"
