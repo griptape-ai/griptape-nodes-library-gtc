@@ -202,68 +202,70 @@ def main():
         # Configure StartNode parameters
         with GriptapeNodes.ContextManager().node(start_node_name):"""
 
-        # Add parameter configuration for StartNode
-        for param in input_params:
-            param_config = dict(param)
-            param_config["parameter_name"] = param_config.pop("name")
-            script += f"""
-            GriptapeNodes.handle_request(AddParameterToNodeRequest(
-                **{param_config},
-                mode_allowed_input=False,
-                mode_allowed_property=True,
-                mode_allowed_output=True,
-                initial_setup=True
-            ))"""
+        script += self._build_node_parameters(
+            input_params, "StartNode", mode_input=False, mode_property=True, mode_output=True
+        )
 
         script += """
 
         # Configure GriptapeCloudPublishedWorkflow parameters
         with GriptapeNodes.ContextManager().node(published_wf_name):"""
 
-        # Add input parameter configuration for GriptapeCloudPublishedWorkflow
-        for param in input_params:
-            param_config = dict(param)
-            param_config["parameter_name"] = param_config.pop("name")
-            script += f"""
-            GriptapeNodes.handle_request(AddParameterToNodeRequest(
-                **{param_config},
-                mode_allowed_input=True,
-                mode_allowed_property=True,
-                mode_allowed_output=False,
-                initial_setup=True
-            ))"""
-
-        # Add output parameter configuration for GriptapeCloudPublishedWorkflow
-        for param in output_params:
-            param_config = dict(param)
-            param_config["parameter_name"] = param_config.pop("name")
-            script += f"""
-            GriptapeNodes.handle_request(AddParameterToNodeRequest(
-                **{param_config},
-                mode_allowed_input=False,
-                mode_allowed_property=True,
-                mode_allowed_output=True,
-                initial_setup=True
-            ))"""
+        script += self._build_node_parameters(
+            input_params, "GriptapeCloudPublishedWorkflow input", mode_input=True, mode_property=True, mode_output=False
+        )
+        script += self._build_node_parameters(
+            output_params,
+            "GriptapeCloudPublishedWorkflow output",
+            mode_input=False,
+            mode_property=True,
+            mode_output=True,
+        )
 
         script += """
 
         # Configure EndNode parameters
         with GriptapeNodes.ContextManager().node(end_node_name):"""
 
-        # Add parameter configuration for EndNode
-        for param in output_params:
+        script += self._build_node_parameters(
+            output_params, "EndNode", mode_input=True, mode_property=True, mode_output=False
+        )
+
+        return script
+
+    def _build_node_parameters(
+        self, params: list[dict], _node_type: str, *, mode_input: bool, mode_property: bool, mode_output: bool
+    ) -> str:
+        """Build parameter configuration for a specific node.
+
+        Args:
+            params: List of parameter configurations
+            _node_type: Type of node (for documentation purposes)
+            mode_input: Whether input mode is allowed
+            mode_property: Whether property mode is allowed
+            mode_output: Whether output mode is allowed
+
+        Returns:
+            Parameter configuration script as string
+        """
+        if len(params) == 0:
+            return """
+            pass
+        """
+
+        script = ""
+        for param in params:
             param_config = dict(param)
             param_config["parameter_name"] = param_config.pop("name")
+            param_config.pop("settable", None)
             script += f"""
             GriptapeNodes.handle_request(AddParameterToNodeRequest(
                 **{param_config},
-                mode_allowed_input=True,
-                mode_allowed_property=True,
-                mode_allowed_output=False,
+                mode_allowed_input={mode_input},
+                mode_allowed_property={mode_property},
+                mode_allowed_output={mode_output},
                 initial_setup=True
             ))"""
-
         return script
 
     def _build_connection_creation_script(self, input_params: list[dict], output_params: list[dict]) -> str:
