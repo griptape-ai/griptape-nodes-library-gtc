@@ -168,7 +168,7 @@ def main():
         published_wf_response = GriptapeNodes.handle_request(CreateNodeRequest(
             node_type="GriptapeCloudPublishedWorkflow",
             specific_library_name="Griptape Cloud Library",
-            node_name="Published Workflow",
+            node_name="Griptape Cloud Published Workflow",
             metadata={{
                 "workflow_shape": {workflow_shape!r},
                 "structure_id": "{structure_id}",
