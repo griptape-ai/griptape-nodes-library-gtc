@@ -25,7 +25,7 @@ class GriptapeCloudPublishedWorkflow(BaseStructureNode, ControlNode):
         self.structure_name = metadata.get("structure_name", "Published Workflow")
 
         # Add basic structure information parameters
-        self.add_parameter(
+        with ParameterGroup(name="Griptape Cloud Structure Details") as structure_details_group:
             Parameter(
                 name="name",
                 input_types=["str"],
@@ -35,9 +35,7 @@ class GriptapeCloudPublishedWorkflow(BaseStructureNode, ControlNode):
                 tooltip="The name of the published workflow structure",
                 allowed_modes={ParameterMode.OUTPUT},
             )
-        )
 
-        self.add_parameter(
             Parameter(
                 name="structure_id",
                 input_types=["str"],
@@ -47,9 +45,7 @@ class GriptapeCloudPublishedWorkflow(BaseStructureNode, ControlNode):
                 tooltip="The structure ID of the published workflow",
                 allowed_modes={ParameterMode.OUTPUT},
             )
-        )
 
-        self.add_parameter(
             Parameter(
                 name="structure_run_id",
                 input_types=["str"],
@@ -59,7 +55,9 @@ class GriptapeCloudPublishedWorkflow(BaseStructureNode, ControlNode):
                 tooltip="The ID of the structure run",
                 allowed_modes={ParameterMode.OUTPUT},
             )
-        )
+
+        structure_details_group.ui_options = {"hide": False, "collapsed": True}
+        self.add_node_element(structure_details_group)
 
         # Add events group
         with ParameterGroup(name="Events") as events_group:
@@ -72,7 +70,7 @@ class GriptapeCloudPublishedWorkflow(BaseStructureNode, ControlNode):
                 ui_options={"multiline": True, "placeholder_text": "Events"},
                 allowed_modes={ParameterMode.OUTPUT},
             )
-        events_group.ui_options = {"hide": True}  # Hide the events group by default.
+        events_group.ui_options = {"hide": False, "collapsed": True}
         self.add_node_element(events_group)
 
     def validate_before_workflow_run(self) -> list[Exception] | None:

@@ -119,11 +119,14 @@ class GriptapeCloudPublisher(GriptapeCloudApiMixin):
 
             return PublishWorkflowResultSuccess(
                 published_workflow_file_path=str(executor_workflow_path),
+                result_details=f"Workflow '{self._workflow_name}' published successfully to Griptape Cloud Structure '{structure.structure_id}'.",
             )
         except Exception as e:
             details = f"Failed to publish workflow '{self._workflow_name}'. Error: {e}"
             logger.error(details)
-            return PublishWorkflowResultFailure()
+            return PublishWorkflowResultFailure(
+                result_details=details,
+            )
 
     @classmethod
     def _get_base_url(cls) -> str:
