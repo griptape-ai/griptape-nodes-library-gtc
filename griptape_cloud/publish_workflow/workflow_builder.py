@@ -371,7 +371,7 @@ if __name__ == "__main__":
                 capture_output=True,
                 text=True,
                 cwd=temp_script_path.parent,
-                timeout=30,
+                timeout=300,
                 check=False,
             )
 

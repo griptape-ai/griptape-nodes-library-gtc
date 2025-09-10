@@ -204,8 +204,8 @@ test = [{ name = "pytest", specifier = ">=8.3.5" }]
 
 [[package]]
 name = "griptape-nodes"
-version = "0.52.0"
-source = { git = "https://github.com/griptape-ai/griptape-nodes?rev=main#d55f121a4ed30ffa6c502727f9bfc1f769f9b78d" }
+version = "0.53.0"
+source = { git = "https://github.com/griptape-ai/griptape-nodes?rev=main#7d6e18e81b29fd665bac9f2314c5fc38f3126ebd" }
 dependencies = [
     { name = "binaryornot" },
     { name = "fastapi" },
@@ -219,6 +219,7 @@ dependencies = [
     { name = "python-dotenv" },
     { name = "python-multipart" },
     { name = "tomlkit" },
+    { name = "typer" },
     { name = "uv" },
     { name = "uvicorn" },
     { name = "watchfiles" },
