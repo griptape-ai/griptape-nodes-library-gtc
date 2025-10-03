@@ -39,6 +39,7 @@ from griptape_nodes.retained_mode.events.app_events import (
     GetEngineVersionRequest,
     GetEngineVersionResultSuccess,
 )
+from griptape_nodes.retained_mode.events.base_events import ResultDetail, ResultDetails
 from griptape_nodes.retained_mode.events.parameter_events import (
     GetParameterValueRequest,
     GetParameterValueResultSuccess,
@@ -57,7 +58,6 @@ from griptape_nodes.retained_mode.griptape_nodes import (
 from httpx import Client
 from mixins.griptape_cloud_api_mixin import GriptapeCloudApiMixin
 from publish_workflow import GRIPTAPE_CLOUD_LIBRARY_CONFIG_KEY
-from publish_workflow.griptape_cloud_subprocess_executor import GriptapeCloudSubprocessExecutor
 from publish_workflow.workflow_builder import WorkflowBuilder
 
 if TYPE_CHECKING:
@@ -86,19 +86,22 @@ class GriptapeCloudPublisher(GriptapeCloudApiMixin):
             token=self._get_secret("GT_CLOUD_API_KEY"),
             verify_ssl=False,
         )
-        self._gt_cloud_bucket_id = self._get_config_value(
-            GRIPTAPE_CLOUD_LIBRARY_CONFIG_KEY, "GT_CLOUD_PUBLISH_BUCKET_ID"
-        )
-        self._subprocess_executor = GriptapeCloudSubprocessExecutor()
+        self._gt_cloud_bucket_id: str | None = None
 
     def publish_workflow(self) -> ResultPayload:
         try:
+            validation_exceptions = self._validate_before_publish()
+            if validation_exceptions:
+                result_details: list[ResultDetail] = [
+                    ResultDetail(message=str(e), level=logging.ERROR) for e in validation_exceptions
+                ]
+                return PublishWorkflowResultFailure(result_details=ResultDetails(*result_details))
+
             # Get the workflow shape
             workflow_shape = GriptapeNodes.WorkflowManager().extract_workflow_shape(self._workflow_name)
             logger.info("Workflow shape: %s", workflow_shape)
 
-            if self.execute_on_publish:
-                self._create_run_input = self._gather_griptape_cloud_start_flow_input(workflow_shape)
+            self._create_run_input = self._gather_griptape_cloud_start_flow_input(workflow_shape)
 
             # Package the workflow
             package_path = self._package_workflow(self._workflow_name)
@@ -112,10 +115,6 @@ class GriptapeCloudPublisher(GriptapeCloudApiMixin):
 
             # Generate an executor workflow that can invoke the published structure
             executor_workflow_path = self._generate_executor_workflow(structure.structure_id, workflow_shape)
-
-            if self.execute_on_publish:
-                self._wait_for_latest_structure_deployment(structure_id=structure.structure_id)
-                self._invoke_executor_workflow(executor_workflow_path, self._create_run_input)
 
             return PublishWorkflowResultSuccess(
                 published_workflow_file_path=str(executor_workflow_path),
@@ -156,6 +155,24 @@ class GriptapeCloudPublisher(GriptapeCloudApiMixin):
             raise ValueError(details)
         return secret_value
 
+    def _validate_before_publish(self) -> list[Exception]:
+        """Validate the workflow before publishing."""
+        exceptions: list[Exception] = []
+
+        try:
+            self._gt_cloud_bucket_id = self._get_config_value(
+                GRIPTAPE_CLOUD_LIBRARY_CONFIG_KEY, "GT_CLOUD_PUBLISH_BUCKET_ID"
+            )
+        except Exception as e:
+            exceptions.append(e)
+
+        try:
+            self._get_secret("GT_CLOUD_BUCKET_ID")
+        except Exception as e:
+            exceptions.append(e)
+
+        return exceptions
+
     def _gather_griptape_cloud_start_flow_input(self, workflow_shape: dict[str, Any]) -> dict[str, Any]:
         """Extracts the Griptape Cloud Start Flow input parameters from the workflow."""
         workflow_input: dict[str, Any] = {"Start Flow": {}}
@@ -175,14 +192,10 @@ class GriptapeCloudPublisher(GriptapeCloudApiMixin):
 
         return workflow_input
 
-    def _invoke_executor_workflow(self, executor_workflow_path: Path, workflow_input: dict[str, Any] | None) -> None:
-        # Execute the script in a background thread without waiting for completion
-        self._subprocess_executor.execute_workflow(executor_workflow_path, workflow_input)
-
-    def _upload_file_to_data_lake(self, name: str, value: bytes) -> None:
+    def _upload_file_to_data_lake(self, name: str, value: bytes, bucket_id: str) -> None:
         create_asset_response = create_asset(
             client=self._gtc_client,
-            bucket_id=self._gt_cloud_bucket_id,
+            bucket_id=bucket_id,
             body=CreateAssetRequestContent(
                 name=name,
             ),
@@ -194,7 +207,7 @@ class GriptapeCloudPublisher(GriptapeCloudApiMixin):
 
         create_asset_url_response = create_asset_url(
             client=self._gtc_client,
-            bucket_id=self._gt_cloud_bucket_id,
+            bucket_id=bucket_id,
             name=name,
             body=CreateAssetUrlRequestContent(operation=AssertUrlOperation.PUT),
         )
@@ -217,6 +230,11 @@ class GriptapeCloudPublisher(GriptapeCloudApiMixin):
             raise
 
     def _deploy_workflow_to_cloud(self, package_path: str) -> UpdateStructureResponseContent:
+        if self._gt_cloud_bucket_id is None:
+            details = "GT_CLOUD_PUBLISH_BUCKET_ID is not set in the configuration."
+            logger.error(details)
+            raise ValueError(details)
+
         create_structure_response = create_structure(
             client=self._gtc_client,
             body=CreateStructureRequestContent(
@@ -235,7 +253,7 @@ class GriptapeCloudPublisher(GriptapeCloudApiMixin):
             file_name = Path(package_path).name
 
         asset_name = f"{create_structure_response.structure_id}/{file_name}"
-        self._upload_file_to_data_lake(name=asset_name, value=file_contents)
+        self._upload_file_to_data_lake(name=asset_name, value=file_contents, bucket_id=self._gt_cloud_bucket_id)
 
         update_structure_response = update_structure(
             client=self._gtc_client,

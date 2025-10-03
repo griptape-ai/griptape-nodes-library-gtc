@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any
 
 from griptape_nodes.retained_mode.griptape_nodes import GriptapeNodes
+from publish_workflow.griptape_cloud_published_workflow import GriptapeCloudPublishedWorkflow
 
 logger = logging.getLogger(__name__)
 
@@ -212,7 +213,12 @@ def main():
         with GriptapeNodes.ContextManager().node(published_wf_name):"""
 
         script += self._build_node_parameters(
-            input_params, "GriptapeCloudPublishedWorkflow input", mode_input=True, mode_property=True, mode_output=False
+            input_params,
+            "GriptapeCloudPublishedWorkflow input",
+            mode_input=True,
+            mode_property=True,
+            mode_output=False,
+            omit_parameters=GriptapeCloudPublishedWorkflow.get_default_node_parameter_names(),
         )
         script += self._build_node_parameters(
             output_params,
@@ -220,6 +226,7 @@ def main():
             mode_input=False,
             mode_property=True,
             mode_output=True,
+            omit_parameters=GriptapeCloudPublishedWorkflow.get_default_node_parameter_names(),
         )
 
         script += """
@@ -228,13 +235,25 @@ def main():
         with GriptapeNodes.ContextManager().node(end_node_name):"""
 
         script += self._build_node_parameters(
-            output_params, "EndNode", mode_input=True, mode_property=True, mode_output=False
+            output_params,
+            "EndNode",
+            mode_input=True,
+            mode_property=True,
+            mode_output=False,
+            omit_parameters=["was_successful", "result_details"],
         )
 
         return script
 
     def _build_node_parameters(
-        self, params: list[dict], _node_type: str, *, mode_input: bool, mode_property: bool, mode_output: bool
+        self,
+        params: list[dict],
+        _node_type: str,
+        *,
+        mode_input: bool,
+        mode_property: bool,
+        mode_output: bool,
+        omit_parameters: list[str] | None = None,
     ) -> str:
         """Build parameter configuration for a specific node.
 
@@ -244,21 +263,28 @@ def main():
             mode_input: Whether input mode is allowed
             mode_property: Whether property mode is allowed
             mode_output: Whether output mode is allowed
+            omit_parameters: List of parameter names to omit from configuration
 
         Returns:
             Parameter configuration script as string
         """
+        if omit_parameters is None:
+            omit_parameters = []
         if len(params) == 0:
             return """
             pass
         """
 
+        omit_parameters.append("execution_environment")  # Always omit this parameter
+
         script = ""
         for param in params:
             param_config = dict(param)
-            param_config["parameter_name"] = param_config.pop("name")
+            param_name = param_config.pop("name")
+            param_config["parameter_name"] = param_name
             param_config.pop("settable", None)
-            script += f"""
+            if param_name not in omit_parameters:
+                script += f"""
             GriptapeNodes.handle_request(AddParameterToNodeRequest(
                 **{param_config},
                 mode_allowed_input={mode_input},
@@ -299,12 +325,24 @@ def main():
 
         # Add connections for each output parameter
         for param in output_params:
-            script += f"""
+            if param["name"] not in ["exec_out", "failure"]:
+                script += f"""
     GriptapeNodes.handle_request(CreateConnectionRequest(
         source_node_name=published_wf_name,
         source_parameter_name="{param["name"]}",
         target_node_name=end_node_name,
         target_parameter_name="{param["name"]}",
+        initial_setup=True
+    ))"""
+
+        control_flow: dict = {"exec_out": "exec_in", "failure": "failed"}
+        for key, val in control_flow.items():
+            script += f"""
+    GriptapeNodes.handle_request(CreateConnectionRequest(
+        source_node_name=published_wf_name,
+        source_parameter_name="{key}",
+        target_node_name=end_node_name,
+        target_parameter_name="{val}",
         initial_setup=True
     ))"""
 

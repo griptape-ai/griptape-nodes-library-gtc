@@ -16,7 +16,10 @@ logger.setLevel(logging.INFO)
 
 
 class BaseGriptapeCloudNode(BaseNode, GriptapeCloudApiMixin):
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, name: str | None = None, **kwargs) -> None:
+        # Handle name as either positional or keyword argument
+        if name is not None:
+            kwargs["name"] = name
         super().__init__(**kwargs)
         self.base_url = DEFAULT_GRIPTAPE_CLOUD_ENDPOINT
         self.gtc_client = AuthenticatedClient(

@@ -1,6 +1,7 @@
 import argparse
 import json
 import logging
+import os
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -14,14 +15,25 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
+load_dotenv()
+os.environ["GTN_CONFIG_STORAGE_BACKEND"] = "gtc"
+
 
 def _set_libraries(libraries: list[str]) -> None:
-    from griptape_nodes.retained_mode.managers.config_manager import ConfigManager
+    from griptape_nodes.retained_mode.griptape_nodes import GriptapeNodes
 
-    config_manager = ConfigManager()
+    config_manager = GriptapeNodes.ConfigManager()
+    config_manager.set_config_value(
+        key="enable_workspace_file_watching",
+        value=False,
+    )
     config_manager.set_config_value(
         key="app_events.on_app_initialization_complete.libraries_to_register",
         value=libraries,
+    )
+    config_manager.set_config_value(
+        key="workspace_directory",
+        value=str(Path(__file__).parent),
     )
 
 
@@ -44,16 +56,16 @@ if __name__ == "__main__":
         logger.info(msg)
         raise
 
-    load_dotenv()
-    _set_libraries(LIBRARIES)
-
+    from griptape_nodes.drivers.storage import StorageBackend
     from structure_workflow_executor import StructureWorkflowExecutor
     from workflow import execute_workflow  # type: ignore[attr-defined]
 
     workflow_file_path = Path(__file__).parent / "workflow.py"
-    workflow_runner = StructureWorkflowExecutor()
+    workflow_runner = StructureWorkflowExecutor(storage_backend=StorageBackend("gtc"))
+
+    _set_libraries(LIBRARIES)
+
     execute_workflow(
         input=flow_input,
-        storage_backend="gtc",
         workflow_executor=workflow_runner,
     )
