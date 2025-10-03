@@ -15,6 +15,10 @@ logger.setLevel(logging.INFO)
 class BucketOptions(Options):
     choices_value_lookup: dict[str, BucketDetail] = field(kw_only=True)
 
+    def __init__(self, *, choices: list, choices_value_lookup: dict[str, BucketDetail]):
+        super().__init__(choices=choices)
+        self.choices_value_lookup = choices_value_lookup
+
     def converters_for_trait(self) -> list[Callable]:
         def converter(value: Any) -> Any:
             if value not in self.choices:

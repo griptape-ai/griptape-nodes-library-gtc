@@ -63,6 +63,7 @@ from griptape_cloud_client.models.list_structures_response_content import (
     ListStructuresResponseContent,
 )
 from griptape_cloud_client.models.structure_deployment_detail import StructureDeploymentDetail
+from griptape_cloud_client.models.structure_run_status import StructureRunStatus
 from griptape_cloud_client.models.update_bucket_request_content import UpdateBucketRequestContent
 from griptape_cloud_client.models.update_bucket_response_content import UpdateBucketResponseContent
 from griptape_cloud_client.types import UNSET
@@ -137,7 +138,7 @@ class GriptapeCloudApiMixin:
             raise
 
     def _wait_for_latest_structure_deployment(
-        self, structure_id: str, timeout: float = 60.0
+        self, structure_id: str, timeout: float = 300.0
     ) -> GetDeploymentResponseContent:
         try:
             response = self._list_structure_deployments(structure_id=structure_id)
@@ -384,6 +385,9 @@ class GriptapeCloudApiMixin:
         except Exception as e:
             logger.error("Error getting structure run: %s", e)
             raise
+
+    def _get_structure_run_bad_statuses(self) -> list[str]:
+        return [StructureRunStatus.FAILED, StructureRunStatus.CANCELLED, StructureRunStatus.ERROR]
 
     def _list_structure_run_events(
         self, structure_run_id: str, offset: float | None = None
