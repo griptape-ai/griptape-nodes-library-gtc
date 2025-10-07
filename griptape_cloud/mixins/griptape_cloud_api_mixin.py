@@ -52,7 +52,9 @@ from griptape_cloud_client.models.get_deployment_response_content import GetDepl
 from griptape_cloud_client.models.get_structure_run_response_content import (
     GetStructureRunResponseContent,
 )
-from griptape_cloud_client.models.list_assistant_events_response_content import ListAssistantEventsResponseContent
+from griptape_cloud_client.models.list_assistant_events_response_content import (
+    ListAssistantEventsResponseContent,
+)
 from griptape_cloud_client.models.list_assistants_response_content import ListAssistantsResponseContent
 from griptape_cloud_client.models.list_buckets_response_content import ListBucketsResponseContent
 from griptape_cloud_client.models.list_events_response_content import ListEventsResponseContent

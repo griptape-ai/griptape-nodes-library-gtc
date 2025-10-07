@@ -1,7 +1,7 @@
 import logging
 from typing import TYPE_CHECKING, cast
 
-from assets.base_asset_node import BaseAssetNode
+from base.base_griptape_cloud_node import BaseGriptapeCloudNode
 from griptape_cloud_client.models.assert_url_operation import AssertUrlOperation
 from griptape_nodes.exe_types.core_types import Parameter, ParameterMode
 from griptape_nodes.exe_types.node_types import ControlNode
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
-class CreateAssetUrl(BaseAssetNode, ControlNode):
+class CreateAssetUrl(BaseGriptapeCloudNode, ControlNode):
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
 

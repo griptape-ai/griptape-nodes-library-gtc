@@ -9,25 +9,27 @@ readme = "README.md"
 requires-python = ">=3.12.0, <3.13"
 dependencies = [
     "griptape-nodes",
+    "griptape-cloud-client",
     "httpx>=0.28.1",
 ]
 
 [dependency-groups]
-dev = ["mdformat>=0.7.22", "pyright>=1.1.396", "ruff>=0.11.0", "typos>=1.30.2", "openapi-python-client>=0.24.3"]
+dev = ["mdformat>=0.7.22", "pyright>=1.1.396", "ruff>=0.11.0", "typos>=1.30.2"]
 test = ["pytest>=8.3.5"]
 
 [tool.uv.sources]
 griptape-nodes = { git = "https://github.com/griptape-ai/griptape-nodes", rev="main"}
+griptape-cloud-client = { git = "https://github.com/griptape-ai/griptape-cloud-python-client", rev = "main" }
 
 [tool.ruff]
 line-length = 120
 
 [tool.ruff.format]
-exclude = [".venv", "griptape_cloud/griptape_cloud_client/**/*"]
+exclude = [".venv"]
 
 [tool.ruff.lint]
 select = ["ALL"]
-exclude = ["griptape_cloud/griptape_cloud_client/**/*"]
+exclude = []
 ignore = [
   "TD002",   # Intentional
   "FIX002",  # Intentional
@@ -64,8 +66,6 @@ venvPath = "."
 venv = ".venv"
 include = ["."]
 exclude = [
-  "griptape_cloud/griptape_cloud_client/**/*",
-  "griptape_cloud/generated/**/*",
   ".venv",
   "GriptapeNodes",
   "**/node_modules",

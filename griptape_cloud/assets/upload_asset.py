@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
 import requests
-from assets.base_asset_node import BaseAssetNode
+from base.base_griptape_cloud_node import BaseGriptapeCloudNode
 from griptape_cloud_client.models.assert_url_operation import AssertUrlOperation
 from griptape_nodes.exe_types.core_types import Parameter, ParameterMode
 from griptape_nodes.exe_types.node_types import AsyncResult, ControlNode
@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
-class UploadAsset(BaseAssetNode, ControlNode):
+class UploadAsset(BaseGriptapeCloudNode, ControlNode):
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
 

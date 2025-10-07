@@ -18,10 +18,6 @@ install/dev: ## Install dev dependencies.
 install/test: ## Install test dependencies.
 	@uv sync --group test
 
-.PHONY: gen/sdk
-gen/sdk: ## Generate the Griptape Cloud SDK.
-	@uv run scripts/gen_sdk.py
-
 .PHONY: lint
 lint: ## Lint project.
 	@uv run ruff check --fix

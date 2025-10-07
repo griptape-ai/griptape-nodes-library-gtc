@@ -19,6 +19,10 @@ class AssistantOptions(Options):
         super().__init__(choices=choices)
         self.choices_value_lookup = choices_value_lookup
 
+    @classmethod
+    def _assistant_to_name_and_id(cls, assistant: AssistantDetail) -> str:
+        return f"{assistant.name} ({assistant.assistant_id})"
+
     def converters_for_trait(self) -> list[Callable]:
         def converter(value: Any) -> Any:
             if value not in self.choices:

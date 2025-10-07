@@ -1,10 +1,10 @@
 import logging
 from typing import TYPE_CHECKING, Any, cast
 
+from base.base_griptape_cloud_node import BaseGriptapeCloudNode
 from griptape_cloud_client.types import Unset
 from griptape_nodes.exe_types.core_types import Parameter, ParameterGroup, ParameterList, ParameterMode
 from griptape_nodes.exe_types.node_types import AsyncResult, ControlNode
-from structures.base_structure_node import BaseStructureNode
 
 if TYPE_CHECKING:
     from griptape_cloud_client.models.structure_detail import StructureDetail
@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
-class RunStructure(BaseStructureNode, ControlNode):
+class RunStructure(BaseGriptapeCloudNode, ControlNode):
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
 
