@@ -58,7 +58,10 @@ from griptape_nodes.retained_mode.griptape_nodes import (
 from httpx import Client
 from mixins.griptape_cloud_api_mixin import GriptapeCloudApiMixin
 from publish_workflow import GRIPTAPE_CLOUD_LIBRARY_CONFIG_KEY
-from publish_workflow.workflow_builder import WorkflowBuilder
+from publish_workflow.griptape_cloud_workflow_builder import (
+    GriptapeCloudWorkflowBuilder,
+    GriptapeCloudWorkflowBuilderInput,
+)
 
 if TYPE_CHECKING:
     from griptape_nodes.retained_mode.events.base_events import ResultPayload
@@ -75,7 +78,12 @@ GRIPTAPE_SERVICE = "Griptape"
 
 class GriptapeCloudPublisher(GriptapeCloudApiMixin):
     def __init__(
-        self, workflow_name: str, *, execute_on_publish: bool = False, published_workflow_file_name: str | None = None
+        self,
+        workflow_name: str,
+        *,
+        execute_on_publish: bool = False,
+        published_workflow_file_name: str | None = None,
+        pickle_control_flow_result: bool = False,
     ) -> None:
         self._workflow_name = workflow_name
         self._published_workflow_file_name = published_workflow_file_name
@@ -87,6 +95,7 @@ class GriptapeCloudPublisher(GriptapeCloudApiMixin):
             verify_ssl=False,
         )
         self._gt_cloud_bucket_id: str | None = None
+        self.pickle_control_flow_result = pickle_control_flow_result
 
     def publish_workflow(self) -> ResultPayload:
         try:
@@ -480,6 +489,10 @@ class GriptapeCloudPublisher(GriptapeCloudApiMixin):
                         '["REPLACE_LIBRARIES"]',
                         f"[{', '.join(library_paths_formatted)}]",
                     )
+                    structure_file_contents = structure_file_contents.replace(
+                        '"REPLACE_PICKLE_DEFAULT"',
+                        "True" if self.pickle_control_flow_result else "False",
+                    )
                 with temp_structure_path.open("w", encoding="utf-8") as structure_file:
                     structure_file.write(structure_file_contents)
 
@@ -539,9 +552,14 @@ class GriptapeCloudPublisher(GriptapeCloudApiMixin):
         library_paths = [library.library_path for library in libraries if library.library_path is not None]
         if self._published_workflow_file_name is None:
             self._published_workflow_file_name = f"{self._workflow_name}_gtc_executor_{structure_id}"
-        builder = WorkflowBuilder(
-            workflow_name=self._workflow_name,
-            executor_workflow_name=self._published_workflow_file_name,
-            libraries=library_paths,
+        builder = GriptapeCloudWorkflowBuilder(
+            workflow_builder_input=GriptapeCloudWorkflowBuilderInput(
+                workflow_name=self._workflow_name,
+                workflow_shape=workflow_shape,
+                structure_id=structure_id,
+                executor_workflow_name=self._published_workflow_file_name,
+                libraries=library_paths,
+                pickle_control_flow_result=self.pickle_control_flow_result,
+            )
         )
-        return builder.generate_executor_workflow(structure_id, workflow_shape)
+        return builder.generate_executor_workflow()

@@ -11,6 +11,7 @@ import logging
 import subprocess
 import sys
 import uuid
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -20,38 +21,50 @@ from publish_workflow.griptape_cloud_published_workflow import GriptapeCloudPubl
 logger = logging.getLogger(__name__)
 
 
-class WorkflowBuilder:
+@dataclass
+class GriptapeCloudWorkflowBuilderInput:
+    workflow_name: str
+    workflow_shape: dict[str, Any]
+    executor_workflow_name: str
+    structure_id: str
+    libraries: list[str] = field(default_factory=list)
+    pickle_control_flow_result: bool = False
+
+
+class GriptapeCloudWorkflowBuilder:
     """Builder class for generating executor workflows using simple script generation."""
 
-    def __init__(self, workflow_name: str, executor_workflow_name: str, libraries: list[str] | None = None) -> None:
+    def __init__(
+        self,
+        workflow_builder_input: GriptapeCloudWorkflowBuilderInput,
+    ) -> None:
         """Initialize the WorkflowBuilder.
 
         Args:
-            workflow_name: Name of the original workflow that was published
-            executor_workflow_name: Name of the executor workflow to be created
-            libraries: List of libraries needed for the workflow
+            workflow_builder_input: Configuration input for the workflow builder
         """
-        self.workflow_name = workflow_name
-        self.executor_workflow_name = executor_workflow_name
-        self.libraries = libraries or []
+        self.workflow_builder_input = workflow_builder_input
 
-    def generate_executor_workflow(self, structure_id: str, workflow_shape: dict[str, Any]) -> Path:
-        """Generate an executor workflow that can invoke the published structure.
-
-        Args:
-            structure_id: The ID of the published structure in Griptape Cloud
-            workflow_shape: The input/output shape of the original workflow
-        """
+    def generate_executor_workflow(self) -> Path:
+        """Generate an executor workflow that can invoke the published structure."""
         # Generate a simple workflow creation script using PublishedWorkflow node
-        workflow_script = self._build_simple_workflow_script(structure_id, workflow_shape, self.libraries)
+        workflow_script = self._build_simple_workflow_script(
+            self.workflow_builder_input.structure_id,
+            self.workflow_builder_input.workflow_shape,
+            self.workflow_builder_input.libraries,
+        )
 
         # Execute the script in a subprocess to create the workflow
         self._execute_workflow_script(workflow_script)
 
         # Verify the workflow was created successfully
-        executor_workflow_path = GriptapeNodes.ConfigManager().workspace_path / (self.executor_workflow_name + ".py")
+        executor_workflow_path = GriptapeNodes.ConfigManager().workspace_path / (
+            self.workflow_builder_input.executor_workflow_name + ".py"
+        )
         if not executor_workflow_path.exists():
-            error_msg = f"Executor workflow {self.executor_workflow_name} was not created successfully."
+            error_msg = (
+                f"Executor workflow {self.workflow_builder_input.executor_workflow_name} was not created successfully."
+            )
             logger.error(error_msg)
             raise RuntimeError(error_msg)
         return executor_workflow_path
@@ -137,7 +150,7 @@ def main():
 
     context_manager = GriptapeNodes.ContextManager()
     if not context_manager.has_current_workflow():
-        context_manager.push_workflow(workflow_name="{self.executor_workflow_name}")
+        context_manager.push_workflow(workflow_name="{self.workflow_builder_input.executor_workflow_name}")
 
     # Create the main flow
     flow_response = GriptapeNodes.handle_request(CreateFlowRequest(parent_flow_name=None))
@@ -173,7 +186,7 @@ def main():
             metadata={{
                 "workflow_shape": {workflow_shape!r},
                 "structure_id": "{structure_id}",
-                "structure_name": "{self.workflow_name}"
+                "structure_name": "{self.workflow_builder_input.workflow_name}"
             }},
             initial_setup=True
         ))
@@ -204,7 +217,12 @@ def main():
         with GriptapeNodes.ContextManager().node(start_node_name):"""
 
         script += self._build_node_parameters(
-            input_params, "StartNode", mode_input=False, mode_property=True, mode_output=True
+            input_params,
+            "StartNode",
+            mode_input=False,
+            mode_property=True,
+            mode_output=True,
+            omit_parameters=["exec_out"],
         )
 
         script += """
@@ -240,7 +258,7 @@ def main():
             mode_input=True,
             mode_property=True,
             mode_output=False,
-            omit_parameters=["was_successful", "result_details"],
+            omit_parameters=["was_successful", "result_details", "exec_in", "failed"],
         )
 
         return script
@@ -358,10 +376,11 @@ def main():
 
     # Save the workflow
     save_response = GriptapeNodes.handle_request(SaveWorkflowRequest(
-        file_name="{self.executor_workflow_name}"))
+        file_name="{self.workflow_builder_input.executor_workflow_name}",
+        pickle_control_flow_result={self.workflow_builder_input.pickle_control_flow_result}))
 
     if save_response.succeeded():
-        print(f"Successfully created executor workflow: {self.executor_workflow_name}")
+        print(f"Successfully created executor workflow: {self.workflow_builder_input.executor_workflow_name}")
     else:
         print(f"Failed to create executor workflow")
         exit(1)
@@ -424,7 +443,9 @@ if __name__ == "__main__":
                 logger.error("Failed to generate executor workflow: %s", result.stderr)
                 raise RuntimeError(error_msg)
 
-            logger.info("Successfully generated executor workflow: %s", self.executor_workflow_name)
+            logger.info(
+                "Successfully generated executor workflow: %s", self.workflow_builder_input.executor_workflow_name
+            )
 
         finally:
             # Clean up temporary script
