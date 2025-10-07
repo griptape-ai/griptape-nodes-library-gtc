@@ -125,7 +125,8 @@ class GriptapeCloudPublishedWorkflow(SuccessFailureNode, BaseGriptapeCloudNode):
         structure_params = ["name", "structure_id", "structure_run_id"]
         event_params = ["include_events", "events"]
         params = structure_params + event_params
-        params = ["was_successful", "result_details"]
+        params.extend(["was_successful", "result_details"])
+        params.extend(["exec_in", "exec_out", "failed"])
         return params
 
     @classmethod

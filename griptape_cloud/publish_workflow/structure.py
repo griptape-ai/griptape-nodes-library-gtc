@@ -7,6 +7,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 LIBRARIES = ["REPLACE_LIBRARIES"]
+PICKLE_DEFAULT = "REPLACE_PICKLE_DEFAULT"
 
 
 logging.basicConfig(
@@ -45,9 +46,16 @@ if __name__ == "__main__":
         default=None,
         help="The input to the flow",
     )
+    parser.add_argument(
+        "--pickle-control-flow-result",
+        action="store_true",
+        default=PICKLE_DEFAULT,
+        help="Whether to pickle the control flow result",
+    )
 
     args = parser.parse_args()
     flow_input = args.input
+    pickle_result = args.pickle_control_flow_result
 
     try:
         flow_input = json.loads(flow_input) if flow_input else {}
@@ -65,7 +73,4 @@ if __name__ == "__main__":
 
     _set_libraries(LIBRARIES)
 
-    execute_workflow(
-        input=flow_input,
-        workflow_executor=workflow_runner,
-    )
+    execute_workflow(input=flow_input, workflow_executor=workflow_runner, pickle_control_flow_result=pickle_result)
