@@ -19,6 +19,10 @@ class StructureOptions(Options):
         super().__init__(choices=choices)
         self.choices_value_lookup = choices_value_lookup
 
+    @classmethod
+    def _structure_to_name_and_id(cls, structure: StructureDetail) -> str:
+        return f"{structure.name} ({structure.structure_id})"
+
     def converters_for_trait(self) -> list[Callable]:
         def converter(value: Any) -> Any:
             if value not in self.choices:

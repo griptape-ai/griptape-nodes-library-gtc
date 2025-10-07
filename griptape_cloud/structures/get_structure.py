@@ -1,21 +1,21 @@
 import logging
 from typing import Any
 
+from base.base_griptape_cloud_node import BaseGriptapeCloudNode
 from griptape_nodes.exe_types.core_types import Parameter, ParameterMode
 from griptape_nodes.exe_types.node_types import DataNode
-from structures.base_structure_node import BaseStructureNode
 from structures.structure_options import StructureOptions
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
-class GetStructure(BaseStructureNode, DataNode):
+class GetStructure(BaseGriptapeCloudNode, DataNode):
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
 
         self.structures = self._list_structures().structures
-        self.choices = list(map(GetStructure._structure_to_name_and_id, self.structures))
+        self.choices = list(map(StructureOptions._structure_to_name_and_id, self.structures))
 
         self.add_parameter(
             Parameter(
@@ -27,7 +27,9 @@ class GetStructure(BaseStructureNode, DataNode):
                 traits={
                     StructureOptions(
                         choices=self.choices,
-                        choices_value_lookup={GetStructure._structure_to_name_and_id(s): s for s in self.structures},
+                        choices_value_lookup={
+                            StructureOptions._structure_to_name_and_id(s): s for s in self.structures
+                        },
                     )
                 },
                 tooltip="The ID of the structure",

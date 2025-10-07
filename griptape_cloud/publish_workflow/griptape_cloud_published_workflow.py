@@ -4,12 +4,12 @@ import logging
 from enum import StrEnum
 from typing import Any
 
+from base.base_griptape_cloud_node import BaseGriptapeCloudNode
 from griptape_cloud_client.models.deployment_status import DeploymentStatus
 from griptape_cloud_client.types import Unset
 from griptape_nodes.exe_types.core_types import Parameter, ParameterGroup, ParameterMessage, ParameterMode
 from griptape_nodes.exe_types.node_types import AsyncResult, SuccessFailureNode
 from griptape_nodes.exe_types.param_components.execution_status_component import ExecutionStatusComponent
-from structures.base_structure_node import BaseStructureNode
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -22,7 +22,7 @@ class PublishedWorkflowExecutionStatus(StrEnum):
     FAILED = "FAILED"
 
 
-class GriptapeCloudPublishedWorkflow(SuccessFailureNode, BaseStructureNode):
+class GriptapeCloudPublishedWorkflow(SuccessFailureNode, BaseGriptapeCloudNode):
     def __init__(self, name: str | None = None, **kwargs) -> None:
         # Handle name as either positional or keyword argument
         if name is not None:

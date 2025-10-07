@@ -2,7 +2,7 @@ import logging
 from typing import Any
 
 from assistants.assistant_options import AssistantOptions
-from assistants.base_assistant_node import BaseAssistantNode
+from base.base_griptape_cloud_node import BaseGriptapeCloudNode
 from griptape_nodes.exe_types.core_types import Parameter, ParameterMode
 from griptape_nodes.exe_types.node_types import DataNode
 
@@ -10,12 +10,12 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
-class GetAssistant(BaseAssistantNode, DataNode):
+class GetAssistant(BaseGriptapeCloudNode, DataNode):
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
 
         self.assistants = self._list_assistants().assistants
-        self.choices = list(map(GetAssistant._assistant_to_name_and_id, self.assistants))
+        self.choices = list(map(AssistantOptions._assistant_to_name_and_id, self.assistants))
 
         self.add_parameter(
             Parameter(
@@ -27,7 +27,9 @@ class GetAssistant(BaseAssistantNode, DataNode):
                 traits={
                     AssistantOptions(
                         choices=self.choices,
-                        choices_value_lookup={GetAssistant._assistant_to_name_and_id(s): s for s in self.assistants},
+                        choices_value_lookup={
+                            AssistantOptions._assistant_to_name_and_id(s): s for s in self.assistants
+                        },
                     )
                 },
                 tooltip="The ID of the assistant",

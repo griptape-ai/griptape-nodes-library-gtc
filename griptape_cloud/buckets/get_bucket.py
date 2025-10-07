@@ -1,7 +1,7 @@
 import logging
 from typing import Any
 
-from buckets.base_bucket_node import BaseBucketNode
+from base.base_griptape_cloud_node import BaseGriptapeCloudNode
 from buckets.bucket_options import BucketOptions
 from griptape_nodes.exe_types.core_types import Parameter, ParameterMode
 from griptape_nodes.exe_types.node_types import DataNode
@@ -10,12 +10,12 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
-class GetBucket(BaseBucketNode, DataNode):
+class GetBucket(BaseGriptapeCloudNode, DataNode):
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
 
         self.buckets = self._list_buckets().buckets
-        self.choices = list(map(GetBucket._bucket_to_name_and_id, self.buckets))
+        self.choices = list(map(BucketOptions._bucket_to_name_and_id, self.buckets))
 
         self.add_parameter(
             Parameter(
@@ -27,7 +27,7 @@ class GetBucket(BaseBucketNode, DataNode):
                 traits={
                     BucketOptions(
                         choices=self.choices,
-                        choices_value_lookup={GetBucket._bucket_to_name_and_id(b): b for b in self.buckets},
+                        choices_value_lookup={BucketOptions._bucket_to_name_and_id(b): b for b in self.buckets},
                     )
                 },
                 tooltip="The ID of the bucket",

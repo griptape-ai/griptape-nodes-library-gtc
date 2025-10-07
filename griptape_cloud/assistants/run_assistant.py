@@ -1,7 +1,7 @@
 import logging
 from typing import TYPE_CHECKING, Any, cast
 
-from assistants.base_assistant_node import BaseAssistantNode
+from base.base_griptape_cloud_node import BaseGriptapeCloudNode
 from griptape_cloud_client.types import Unset
 from griptape_nodes.exe_types.core_types import Parameter, ParameterGroup, ParameterList, ParameterMode
 from griptape_nodes.exe_types.node_types import AsyncResult, ControlNode
@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
-class RunAssistant(BaseAssistantNode, ControlNode):
+class RunAssistant(BaseGriptapeCloudNode, ControlNode):
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
 
