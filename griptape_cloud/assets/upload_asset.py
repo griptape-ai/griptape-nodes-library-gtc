@@ -21,18 +21,6 @@ class UploadAsset(BaseGriptapeCloudNode, ControlNode):
 
         self.add_parameter(
             Parameter(
-                name="file_path",
-                input_types=["str"],
-                type="str",
-                output_type="str",
-                default_value=None,
-                tooltip="The local file path of the asset to upload",
-                allowed_modes={ParameterMode.INPUT, ParameterMode.PROPERTY, ParameterMode.OUTPUT},
-            )
-        )
-
-        self.add_parameter(
-            Parameter(
                 name="bucket",
                 input_types=["BucketDetail"],
                 type="BucketDetail",
@@ -40,6 +28,22 @@ class UploadAsset(BaseGriptapeCloudNode, ControlNode):
                 default_value=None,
                 tooltip="The bucket to upload to",
                 allowed_modes={ParameterMode.INPUT},
+            )
+        )
+
+        self.add_parameter(
+            Parameter(
+                name="file_path",
+                input_types=["str"],
+                type="str",
+                output_type="str",
+                default_value=None,
+                ui_options={
+                    "clickable_file_browser": True,
+                    "expander": True,
+                    "display_name": "Path to File",
+                },
+                tooltip="The file path of the asset to upload",
             )
         )
 

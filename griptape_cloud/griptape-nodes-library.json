@@ -1,6 +1,6 @@
 {
   "name": "Griptape Cloud Library",
-  "library_schema_version": "0.2.0",
+  "library_schema_version": "0.3.0",
   "advanced_library_path": "griptape_cloud_library_advanced.py",
   "settings": [
     {
@@ -14,8 +14,8 @@
   "metadata": {
     "author": "Griptape",
     "description": "Collection of nodes for accessing Griptape Cloud APIs and services.",
-    "library_version": "0.57.1",
-    "engine_version": "0.57.1",
+    "library_version": "0.58.0",
+    "engine_version": "0.58.0",
     "tags": ["Griptape", "AI", "Cloud"],
     "dependencies": {
       "pip_dependencies": [
