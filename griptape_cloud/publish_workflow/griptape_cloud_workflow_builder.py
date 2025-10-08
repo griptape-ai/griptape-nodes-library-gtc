@@ -288,12 +288,16 @@ def main():
         """
         if omit_parameters is None:
             omit_parameters = []
-        if len(params) == 0:
+        omit_parameters.append("execution_environment")  # Always omit this parameter
+
+        # Check if there are any parameters left after omitting
+        param_names = {param["name"] for param in params}
+        remaining_params = param_names - set(omit_parameters)
+
+        if len(remaining_params) == 0:
             return """
             pass
         """
-
-        omit_parameters.append("execution_environment")  # Always omit this parameter
 
         script = ""
         for param in params:
