@@ -1,4 +1,8 @@
-# Griptape Cloud Nodes
+# DEPRECATED
+
+This repository is deprecated. Please use the Griptape Cloud Library from the [griptape-nodes repo](https://github.com/griptape-ai/griptape-nodes/tree/main/libraries/griptape_cloud) instead.
+
+[![No Maintenance Intended](http://unmaintained.tech/badge.svg)](http://unmaintained.tech/)
 
 This library provides Griptape Nodes for interacting with Griptape Cloud APIs and services. You can use these nodes to interact with any of the available Griptape Cloud APIs.
 
